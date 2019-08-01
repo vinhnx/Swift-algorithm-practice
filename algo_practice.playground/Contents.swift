@@ -14,9 +14,7 @@ class Node<T> {
 class LinkedList<T> {
     var head: Node<T>?
 
-    var first: Node<T>? {
-        return head
-    }
+    var first: Node<T>? { return head }
 
     var last: Node<T>? {
         guard var node = head else { return nil }
@@ -27,9 +25,7 @@ class LinkedList<T> {
         return node
     }
 
-    var isEmpty: Bool {
-        return head == nil
-    }
+    var isEmpty: Bool { return head == nil }
 
     var count: Int {
         guard var node = head else { return 0 }
@@ -208,3 +204,21 @@ list.count
 
 list.map { e in e.count }
 list.filter { e in e.count > 3 }
+
+// stack (think: stack of books)
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Stack
+struct Stack<T> {
+    private var array: [T] = [T]()
+
+    var isEmpty: Bool { return array.isEmpty }
+    var count: Int { return array.count }
+    var top: T? { return array.last }
+
+    mutating func push(_ e: T) {
+        array.append(e)
+    }
+
+    mutating func pop() -> T? {
+        return array.popLast()
+    }
+}
