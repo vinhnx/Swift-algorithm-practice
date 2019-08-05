@@ -247,3 +247,47 @@ extension Array where Element == Int {
 
 let input = [10, -1, 3, 9, 2, 27, 8, 5, 1, 3, 0, 26]
 input.insertionSort()
+
+// queue (pipe)
+// first come, first serve
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Queue
+struct Queue<T> {
+    private var array = [T]()
+
+    var isEmpty: Bool {
+        return array.isEmpty
+    }
+
+    var count: Int {
+        return array.count
+    }
+
+    var first: T? {
+        return array.first
+    }
+
+    var last: T? {
+        return array.last
+    }
+
+    mutating func enqueue(_ element: T) {
+        // O(1) because array always add new element at the end of array
+        array.append(element)
+    }
+
+    mutating func dequeue() -> T? {
+        guard array.isEmpty == false else { return nil }
+        return array.removeLast()
+    }
+}
+
+var q = Queue<String>()
+q.enqueue("a")
+q.enqueue("z")
+q.count
+q.first
+q.last
+q.dequeue()
+q.count
+q.first
+q.last
