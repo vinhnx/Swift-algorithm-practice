@@ -291,3 +291,30 @@ q.dequeue()
 q.count
 q.first
 q.last
+
+// graph
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Graph
+struct Edge<T>: Equatable where T: Equatable & Hashable {
+    let from: Vertex<T>
+    let to: Vertex<T>
+    let weight: Double?
+}
+
+struct Vertex<T>: Equatable where T: Equatable & Hashable {
+    var data: T
+    let index: Int
+}
+
+class EdgeList<T> where T: Equatable & Hashable {
+    var vertex: Vertex<T>
+    var edges: [Edge<T>]?
+
+    init(vertex: Vertex<T>) {
+        self.vertex = vertex
+    }
+
+    func addEdge(_ edge: Edge<T>) {
+        edges?.append(edge)
+    }
+}
+
