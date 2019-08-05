@@ -222,3 +222,28 @@ struct Stack<T> {
         return array.popLast()
     }
 }
+
+// insertion sort
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Insertion%20Sort
+extension Array where Element == Int {
+    func insertionSort() -> [Int] {
+        var copy = self
+
+        // O(n^2)
+        // because two nested loops (for and while)
+
+        for i in 1..<copy.count {
+            var y = i
+
+            while y > 0, copy[y] < copy[y - 1] {
+                copy.swapAt(y - 1, y)
+                y -= 1
+            }
+        }
+
+        return copy
+    }
+}
+
+let input = [10, -1, 3, 9, 2, 27, 8, 5, 1, 3, 0, 26]
+input.insertionSort()
