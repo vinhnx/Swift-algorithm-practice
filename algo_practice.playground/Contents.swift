@@ -467,4 +467,368 @@ let timesRight = BinaryTree.node(minus4, "*", divide3andB)
 // root node
 let binaryTree = BinaryTree.node(timesLeft, "+", timesRight)
 binaryTree.count
+binaryTree.traverseInOrder { value in print(value) }
 print(binaryTree)
+
+// binary search tree (sorted binary tree -- left always < right)
+// > a special kind of binary tree (a tree in which has at most two children) that performs insertions and deleteions
+// > such that the tree is always sorted
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Binary%20Search%20Tree
+// >>> searching:
+// > + if the value is less than the current node -> take the left branch
+// > + if the value is greater than the current node -> take the right branch
+// > + if the value is equal to current node -> found it!
+// like most tree operations, this is performed recursively until we either find what we looking for or run out of nodes to look at
+// >>> searching is fast using the structure of the tree, it runs in O(h) time, where h: is the height of the tree
+class BinarySearchTree<T: Comparable> {
+    public private(set) var value: T
+    public private(set) weak var parent: BinarySearchTree?
+    public private(set) var left: BinarySearchTree?
+    public private(set) var right: BinarySearchTree?
+
+    init(_ value: T) {
+        self.value = value
+    }
+
+    convenience init(_ array: [T]) {
+        precondition(array.isEmpty == false)
+        self.init(array.first!)
+
+        for val in array.dropFirst() {
+            insert(val)
+        }
+    }
+
+    var isRoot: Bool {
+        return parent == nil
+    }
+
+    var isLeaf: Bool {
+        return left == nil && right == nil
+    }
+
+    var isLeftChild: Bool {
+        // NOTE: pointer comparison, hence ===
+        return parent?.left === self
+    }
+
+    var isRightChild: Bool {
+        // NOTE: pointer comparison, hence ===
+        return parent?.right === self
+    }
+
+    var hasLeftChild: Bool {
+        return left != nil
+    }
+
+    var hasRightChild: Bool {
+        return right != nil
+    }
+
+    var hasBothChildren: Bool {
+        return hasLeftChild && hasRightChild
+    }
+
+    var isEmpty: Bool {
+        return count > 0
+    }
+
+    var count: Int {
+        return (left?.count ?? 0) + 1 + (right?.count ?? 0)
+    }
+
+    func insert(_ value: T) {
+        if value < self.value {
+            if let left = left {
+                left.insert(value)
+            } else {
+                left = BinarySearchTree(value)
+                left?.parent = self
+            }
+        } else {
+            if let right = right {
+                right.insert(value)
+            } else {
+                right = BinarySearchTree(value)
+                right?.parent = self
+            }
+        }
+    }
+
+    func search(_ value: T) -> BinarySearchTree? {
+        // we start from root
+        if value < self.value {
+            return left?.search(value) // search left first
+        } else if value > self.value {
+            return right?.search(value) // search right
+        } else {
+            return self // found it self
+        }
+    }
+
+    func traverseInOrder(_ handler: (T) -> Void) {
+        left?.traverseInOrder(handler)
+        handler(value)
+        right?.traverseInOrder(handler)
+    }
+
+    func traversePreOrder(_ handler: (T) -> Void) {
+        handler(value)
+        left?.traversePreOrder(handler)
+        right?.traversePreOrder(handler)
+    }
+
+    func traversePostOrder(_ handler: (T) -> Void) {
+        left?.traversePostOrder(handler)
+        right?.traversePostOrder(handler)
+        handler(value)
+    }
+
+    func map(_ formula: (T) -> T) -> [T] {
+        var a = [T]()
+        if let left = left { a += left.map(formula) }
+        a.append(formula(value))
+        if let right = right { a += right.map(formula) }
+        return a
+    }
+
+    func toArray() -> [T] {
+        return map { e in e }
+    }
+
+    func updateParentTo(_ node: BinarySearchTree?) {
+        if let parent = parent {
+            if isLeftChild {
+                parent.left = node
+            } else {
+                parent.right = node
+            }
+        }
+
+        node?.parent = parent
+    }
+
+    func minimum() -> BinarySearchTree {
+        var node = self
+        while let next = node.left {
+            node = next
+        }
+
+        return node
+    }
+
+    func maximum() -> BinarySearchTree {
+        var node = self
+        while let next = node.right {
+            node = next
+        }
+
+        return node
+    }
+
+    @discardableResult
+    func remove() -> BinarySearchTree? {
+        let new: BinarySearchTree?
+
+        // replacement for current node can be either biggest one on the left or smallest one on the right, whichever is not nil
+        if let right = right {
+            new = right.minimum()
+        } else if let left = left {
+            new = left.maximum()
+        } else {
+            new = nil
+        }
+
+        new?.remove()
+
+        // place the replacement on current node's position
+        new?.right = right
+        new?.left = left
+        right?.parent = new
+        left?.parent = new
+
+        updateParentTo(new)
+
+        // the current node is no longer part of the tree, so clean it up
+        parent = nil
+        left = nil
+        right = nil
+
+        return new
+    }
+
+    func height() -> Int {
+        if isLeaf {
+            return 0
+        } else {
+            return 1 + max(left?.height() ?? 0, right?.height() ?? 0)
+        }
+    }
+
+    func depth() -> Int {
+        var node = self
+        var edges = 0
+        while let parent = node.parent {
+            node = parent
+            edges += 1
+        }
+        return edges
+    }
+
+    func predecessor() -> BinarySearchTree<T>? {
+        if let left = left {
+            return left.maximum()
+        } else {
+            var node = self
+            while let parent = node.parent {
+                if parent.value < value { return parent }
+                node = parent
+            }
+
+            return nil
+        }
+    }
+
+    func successor() -> BinarySearchTree<T>? {
+        if let right = right {
+            return right.minimum()
+        } else {
+            var node = self
+            while let parent = node.parent {
+                if parent.value > value { return parent }
+                node = parent
+            }
+
+            return nil
+        }
+    }
+
+    func isBinarySearchTree(_ min: T, max: T) -> Bool {
+        if value < min || value > max { return false }
+        let leftBST = left?.isBinarySearchTree(min, max: value) ?? true
+        let rightBST = right?.isBinarySearchTree(value, max: max) ?? true
+        return leftBST && rightBST
+    }
+}
+
+extension BinarySearchTree: CustomStringConvertible {
+    public var description: String {
+        var s = ""
+        if let left = left {
+            s += "(\(left.description)) <- "
+        }
+        s += "\(value)"
+        if let right = right {
+            s += " -> (\(right.description))"
+        }
+        return s
+    }
+}
+
+let binarySearchTree = BinarySearchTree<Int>(8)
+binarySearchTree.insert(1)
+binarySearchTree.insert(3)
+binarySearchTree.insert(22)
+binarySearchTree.insert(9)
+binarySearchTree.count
+
+if let node1 = binarySearchTree.search(1) {
+    node1.depth()
+}
+
+binarySearchTree.height()
+print(binarySearchTree)
+
+let convenienceBinarySearchTree = BinarySearchTree<Int>([9, -1, 5, 1, 3])
+convenienceBinarySearchTree.traverseInOrder { value in print(value) }
+convenienceBinarySearchTree.count
+
+if let node3 = convenienceBinarySearchTree.search(3) {
+    node3.depth()
+}
+
+convenienceBinarySearchTree.height()
+print(convenienceBinarySearchTree)
+
+// binary search tree as enum (value semantic)
+enum BinarySearchTreeEnum<T: Comparable> {
+    case empty // end of the branch
+    case leaf(T) // leaf node that has no chilren
+    indirect case node(BinarySearchTreeEnum, T, BinarySearchTreeEnum) // a node that has one or two chilren (indirect: recursive enum)
+
+    var count: Int {
+        switch self {
+        case .empty: return 0
+        case .leaf: return 1
+        case let .node(left, _, right):
+            return left.count + 1 + right.count
+        }
+    }
+
+    var height: Int {
+        switch self {
+        case .empty: return -1
+        case .leaf: return 0
+        case let .node(left, _, right):
+            return 1 + max(left.height, right.height)
+        }
+    }
+
+    func insert(_ newValue: T) -> BinarySearchTreeEnum {
+        switch self {
+        case .empty:
+            return .leaf(newValue)
+
+        case let .leaf(value):
+            if newValue < value {
+                return .node(.leaf(newValue), value, .empty)
+            } else {
+                return .node(.empty, value, .leaf(newValue))
+            }
+
+        case let .node(left, value, right):
+            if newValue < value {
+                return .node(left.insert(newValue), value, right)
+            } else {
+                return .node(left, value, right.insert(newValue))
+            }
+        }
+    }
+
+    func search(_ x: T) -> BinarySearchTreeEnum? {
+        switch self {
+        case .empty: return nil
+        case let .leaf(y):
+            return (x == y) ? self : nil
+        case let .node(left, y, right):
+            if x < y {
+                return left.search(x)
+            } else if y < x {
+                return right.search(x)
+            } else {
+                return self
+            }
+        }
+    }
+}
+
+extension BinarySearchTreeEnum: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        switch self {
+        case .empty: return "."
+        case let .leaf(value): return "\(value)"
+        case let .node(left, value, right):
+            return "(\(left.debugDescription) <- \(value) -> \(right.debugDescription))"
+        }
+    }
+}
+
+var treeEnum = BinarySearchTreeEnum.leaf(7)
+treeEnum = treeEnum.insert(2)
+treeEnum = treeEnum.insert(5)
+treeEnum = treeEnum.insert(10)
+treeEnum = treeEnum.insert(9)
+treeEnum = treeEnum.insert(1)
+treeEnum.search(10)
+treeEnum.search(1)
+treeEnum.search(11) // nil
