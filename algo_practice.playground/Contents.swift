@@ -832,3 +832,27 @@ treeEnum = treeEnum.insert(1)
 treeEnum.search(10)
 treeEnum.search(1)
 treeEnum.search(11) // nil
+
+// binary search
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Binary%20Search
+func binarySearch<T: Comparable>(_ array: [T], key: T, range: Range<Int>) -> Int? {
+    guard range.lowerBound < range.upperBound else {
+        // if we get here, then the search key is not present in the array
+        return nil
+    }
+
+    // calculate where to split the array
+    let midIndex = range.lowerBound + (range.upperBound - range.lowerBound) / 2
+
+    // if the search key in the left half?
+    if array[midIndex] > key {
+        return binarySearch(array, key: key, range: range.lowerBound..<midIndex)
+    } else if array[midIndex] < key { // is the search key in the right half
+        return binarySearch(array, key: key, range: midIndex + 1..<range.upperBound)
+    } else {
+        return midIndex // found the search key
+    }
+}
+
+let numbers = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67]
+assert(binarySearch(numbers, key: 3, range: 0..<numbers.count) == 1)
