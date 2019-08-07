@@ -902,3 +902,24 @@ struct Array2D<T> {
 
 let cookies = Array2D(columns: 10, rows: 3, initialValue: 1)
 cookies[2, 1]
+
+// bubble sort
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Bubble%20Sort
+extension Array where Element: Comparable {
+    func bubbleSort() -> [Element] {
+        var copy = self
+        for i in 0..<count {
+            for j in 1..<count - i {
+                if copy[j] < copy[j - 1] {
+                    let tmp = copy[j - 1]
+                    copy[j - 1] = copy[j]
+                    copy[j] = tmp
+                }
+            }
+        }
+
+        return copy
+    }
+}
+
+[10, 0, 3, 9, 2, 14, 8, 27, 1, 5, 8, -1, 26].bubbleSort()
