@@ -856,3 +856,18 @@ func binarySearch<T: Comparable>(_ array: [T], key: T, range: Range<Int>) -> Int
 
 let numbers = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67]
 assert(binarySearch(numbers, key: 3, range: 0..<numbers.count) == 1)
+
+// quick sort
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Quicksort
+extension Array where Element: Comparable {
+    func quickSort() -> [Element] {
+        guard count > 1 else { return self }
+        let pivot = self[self.count / 2]
+        let lhs = filter { $0 < pivot }
+        let equal = filter { $0 == pivot }
+        let rhs = filter { $0 > pivot }
+        return lhs.quickSort() + equal + rhs.quickSort()
+    }
+}
+
+[10, 0, 3, 9, 2, 14, 8, 27, 1, 5, 8, -1, 26].quickSort()
