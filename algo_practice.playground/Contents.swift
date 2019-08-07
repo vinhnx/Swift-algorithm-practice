@@ -871,3 +871,34 @@ extension Array where Element: Comparable {
 }
 
 [10, 0, 3, 9, 2, 14, 8, 27, 1, 5, 8, -1, 26].quickSort()
+
+// array2d
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Array2D
+struct Array2D<T> {
+    let columns: Int
+    let rows: Int
+    private var array: [T]
+
+    init(columns: Int, rows: Int, initialValue: T) {
+        self.columns = columns
+        self.rows = rows
+        array = .init(repeating: initialValue, count: rows * columns)
+    }
+
+    subscript(column: Int, row: Int) -> T {
+        get {
+            precondition(column < columns, "Column \(column) Index is out of range. Array<T>(columns: \(columns), rows:\(rows))")
+            precondition(row < rows, "Row \(row) Index is out of range. Array<T>(columns: \(columns), rows:\(rows))")
+            return array[row * columns + column]
+        }
+
+        set {
+            precondition(column < columns, "Column \(column) Index is out of range. Array<T>(columns: \(columns), rows:\(rows))")
+            precondition(row < rows, "Row \(row) Index is out of range. Array<T>(columns: \(columns), rows:\(rows))")
+            array[row * columns + column] = newValue
+        }
+    }
+}
+
+let cookies = Array2D(columns: 10, rows: 3, initialValue: 1)
+cookies[2, 1]
