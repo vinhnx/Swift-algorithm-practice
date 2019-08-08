@@ -341,6 +341,7 @@ extension TreeNode: CustomStringConvertible {
         if !children.isEmpty {
             s += " {" + children.map { $0.description }.joined(separator: ", ") + "}"
         }
+
         return s
     }
 }
@@ -758,8 +759,10 @@ enum BinarySearchTreeEnum<T: Comparable> {
 
     var count: Int {
         switch self {
-        case .empty: return 0
-        case .leaf: return 1
+        case .empty:
+            return 0
+        case .leaf:
+            return 1
         case let .node(left, _, right):
             return left.count + 1 + right.count
         }
@@ -767,8 +770,10 @@ enum BinarySearchTreeEnum<T: Comparable> {
 
     var height: Int {
         switch self {
-        case .empty: return -1
-        case .leaf: return 0
+        case .empty:
+            return -1
+        case .leaf:
+            return 0
         case let .node(left, _, right):
             return 1 + max(left.height, right.height)
         }
@@ -797,7 +802,8 @@ enum BinarySearchTreeEnum<T: Comparable> {
 
     func search(_ x: T) -> BinarySearchTreeEnum? {
         switch self {
-        case .empty: return nil
+        case .empty:
+            return nil
         case let .leaf(y):
             return (x == y) ? self : nil
         case let .node(left, y, right):
@@ -815,8 +821,10 @@ enum BinarySearchTreeEnum<T: Comparable> {
 extension BinarySearchTreeEnum: CustomDebugStringConvertible {
     public var debugDescription: String {
         switch self {
-        case .empty: return "."
-        case let .leaf(value): return "\(value)"
+        case .empty:
+            return "."
+        case let .leaf(value):
+            return "\(value)"
         case let .node(left, value, right):
             return "(\(left.debugDescription) <- \(value) -> \(right.debugDescription))"
         }
@@ -923,3 +931,178 @@ extension Array where Element: Comparable {
 }
 
 [10, 0, 3, 9, 2, 14, 8, 27, 1, 5, 8, -1, 26].bubbleSort()
+
+// merge sort
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Merge%20Sort
+extension Array where Element == Int {
+    func mergeSort() -> [Element] {
+        guard count > 1 else {
+            return self
+        }
+
+        let midIndex = count / 2
+        let leftHalf = Array(self[..<midIndex]).mergeSort()
+        let rightHalf = Array(self[midIndex..<self.count]).mergeSort()
+        return merge(leftPile: leftHalf, rightPile: rightHalf)
+    }
+
+    func merge(leftPile: [Element], rightPile: [Element]) -> [Element] {
+        var leftIndex = 0
+        var rightIndex = 0
+        var orderedPile = [Element]()
+        orderedPile.reserveCapacity(leftPile.count + rightPile.count)
+
+        while leftIndex < leftPile.count, rightIndex < rightPile.count {
+            if leftPile[leftIndex] < rightPile[rightIndex] {
+                orderedPile.append(leftPile[leftIndex])
+                leftIndex += 1
+            } else if leftPile[leftIndex] > rightPile[rightIndex] {
+                orderedPile.append(rightPile[rightIndex])
+                rightIndex += 1
+            } else {
+                orderedPile.append(leftPile[leftIndex])
+                leftIndex += 1
+                orderedPile.append(rightPile[rightIndex])
+                rightIndex += 1
+            }
+        }
+
+        while leftIndex < leftPile.count {
+            orderedPile.append(leftPile[leftIndex])
+            leftIndex += 1
+        }
+
+        while rightIndex < rightPile.count {
+            orderedPile.append(rightPile[rightIndex])
+            rightIndex += 1
+        }
+
+        return orderedPile
+    }
+}
+
+[10, 0, 3, 9, 2, 14, 8, 27, 1, 5, 8, -1, 26].mergeSort()
+
+// deque: a double-ended queue, for some reason this is pronounced as "deck"
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Deque
+struct Deque<T> {
+    var array = [T]()
+    var isEmpty: Bool {
+        return array.isEmpty
+    }
+
+    var count: Int {
+        return self.array.count
+    }
+
+    mutating func enqueue(_ element: T) {
+        array.append(element)
+    }
+
+    mutating func enqueueFront(_ element: T) {
+        array.insert(element, at: 0)
+    }
+
+    mutating func dequeue() -> T? {
+        guard isEmpty == false else { return nil }
+        return array.removeFirst()
+    }
+
+    mutating func dequeueBack() -> T? {
+        guard isEmpty == false else { return nil }
+        return array.removeLast()
+    }
+
+    var first: T? {
+        return array.first
+    }
+
+    var last: T? {
+        return array.last
+    }
+}
+
+var deque = Deque<Int>()
+deque.enqueue(1)
+deque.enqueue(2)
+deque.enqueue(3)
+deque.enqueue(4)
+deque.dequeue() // 1
+deque.dequeueBack() // 4
+deque.enqueueFront(5)
+deque.dequeue() // 5
+
+// hash table
+// https://github.com/raywenderlich/swift-algorithm-club/tree/master/Hash%20Table
+struct HashTable<Key: Hashable, Value> {
+    typealias Element = (key: Key, value: Value)
+    typealias Bucket = [Element]
+
+    private var buckets: [Bucket]
+    public private(set) var count = 0
+    var isEmpty: Bool { return count == 0 }
+
+    init(capacity: Int) {
+        assert(capacity > 0)
+        buckets = [Bucket](repeating: [], count: capacity)
+    }
+
+    func index(for key: Key) -> Int {
+        return abs(key.hashValue % buckets.count)
+    }
+
+    subscript(key: Key) -> Value? {
+        get {
+            return value(for: key)
+        }
+
+        set {
+            if let value = newValue {
+                updateValue(value, for: key)
+            } else {
+                removeValue(for: key)
+            }
+        }
+    }
+
+    func value(for key: Key) -> Value? {
+        let index = self.index(for: key)
+
+        for element in buckets[index] where element.key == key {
+            return element.value
+        }
+
+        return nil // key not in hash table
+    }
+
+    mutating func updateValue(_ value: Value, for key: Key) -> Value? {
+        let index = self.index(for: key)
+
+        for tuple in buckets[index].enumerated() where tuple.element.key == key {
+            let oldValue = tuple.element.value
+            buckets[index][tuple.offset].value = value
+            return oldValue
+        }
+
+        buckets[index].append((key: key, value: value))
+        count += 1
+        return nil
+    }
+
+    mutating func removeValue(for key: Key) -> Value? {
+        let index = self.index(for: key)
+
+        for tuple in buckets[index].enumerated() where tuple.element.key == key {
+            buckets[index].remove(at: tuple.offset)
+            count -= 1
+            return tuple.element.value
+        }
+
+        return nil // key not in hash table
+    }
+}
+
+var hashtable = HashTable<String, Any>(capacity: 3)
+hashtable["name"] = "Vinh Nguyen"
+hashtable["age"] = 29
+hashtable["job"] = "iOS programmer"
